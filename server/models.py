@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
+from flask_restful import Api, Resource
 
 db = SQLAlchemy()
 

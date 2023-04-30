@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from flask import Flask, request, make_response
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
@@ -17,7 +15,71 @@ db.init_app(app)
 api = Api(app)
 
 class Home(Resource):
-    pass
 
-if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+    def get(self):
+
+        response_dict = {
+            "message": "Welcome to the Newsletter RESTful API",
+        }
+
+        response = make_response(
+            response_dict,
+            200
+        )
+
+        return response
+
+api.add_resource(Home, '/')
+
+
+class Newsletters(Resource):
+
+    def get(self):
+
+        response_dict_list = [n.to_dict() for n in Newsletter.query.all()]
+
+        response = make_response(
+            response_dict_list,
+            200,
+        )
+
+        return response
+    
+    def post(self):
+
+        new_record = Newsletter(**request.json)
+        db.session.add(new_record)
+        db.session.commit()
+
+        return new_record.to_dict(), 201
+
+api.add_resource(Newsletters, '/newsletters')
+
+
+class NewsletterById(Resource):
+    
+    def get(self, id):
+        newsletter = Newsletter.query.get(id)
+        if newsletter is None:
+            return {'ID Not Found'}, 404
+        response_dict = newsletter.to_dict()
+        return response_dict, 200
+    
+    def patch(self, id):
+        newsletter = Newsletter.query.get(id)
+        if newsletter is None:
+            return {'ID Not Found'}, 404
+        newsletter.update(**request.json)
+        db.session.commit()
+        return newsletter.to_dict(), 200
+    
+    def delete(self, id):
+        newsletter = Newsletter.query.get(id)
+        if newsletter is None:
+            return {'ID Not Found'}, 404
+        db.session.delete(newsletter)
+        db.session.commit()
+        return newsletter.to_dict(), 204
+
+    
+api.add_resource(NewsletterById, '/newsletters/<int:id>')
